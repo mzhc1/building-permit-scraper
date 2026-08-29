@@ -1,0 +1,27 @@
+platform: accela
+
+jurisdiction: "High Point"
+state: "NC"
+city: "High Point"
+zipcode: null
+
+base_url: "https://aca-prod.accela.com/COHP"
+# COHP's Accela instance names the building-permits module "ConstPermit"
+# ("Construction Permits" tab), not "Building" -- the default search_path
+# 404s content-wise (HTTP 200 but body is an Accela "Invalid Module param
+# value" error page). Confirmed against the live portal's Default.aspx nav,
+# which lists module=ConstPermit&TabName=Home for that tab.
+search_path: "/Cap/CapHome.aspx?module=ConstPermit&TabName=Home"
+control_prefix: "ctl00$PlaceHolderMain$generalSearchForm"
+
+min_delay: 2.0
+jitter: 1.0
+slice_days: 7
+max_pages: 20
+user_agent: "shovels-gap-demo/0.1 (public records research; contact: YOUR_EMAIL)"
+
+# Not used for this target (Shovels already covers High Point per the
+# 3815-permits/12mo reference figure) -- kept only because run.py's probe
+# path expects the key. scrape/smoke don't touch it.
+probe_candidates:
+  - { city: "High Point", state: "NC" }

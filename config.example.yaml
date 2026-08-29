@@ -1,0 +1,47 @@
+# Copy to config.yaml and edit.
+#
+# Two things to fill in, in this order:
+#   1. probe_candidates  -> run `probe` to find which are actually uncovered
+#   2. base_url          -> the winner's real permit portal URL
+
+platform: accela          # accela | (add more adapters as you go)
+
+# --- the target you settle on -------------------------------------------
+jurisdiction: "REPLACE_ME"
+state: "CA"
+city: "REPLACE_ME"
+zipcode: null             # optional; only if the whole jurisdiction is one zip
+
+# The Accela Citizen Access root. Open the portal in a browser, find the
+# permit search page, and paste its origin + app path here.
+# Typical shapes:
+#   https://aca-prod.accela.com/<AGENCY>
+#   https://<city>.gov/CitizenAccess
+base_url: "https://aca-prod.accela.com/REPLACE_ME"
+
+# Override only if smoke/scrape says the selectors miss.
+search_path: "/Cap/CapHome.aspx?module=Building&TabName=Building"
+control_prefix: "ctl00$PlaceHolderMain$generalSearchForm"
+
+# --- politeness + safety rails ------------------------------------------
+min_delay: 1.5            # seconds between requests, minimum
+jitter: 0.8               # plus up to this much random
+slice_days: 7             # date window per search; Accela caps result sets
+max_pages: 20             # per window, guards against a pagination loop
+user_agent: "shovels-gap-demo/0.1 (public records research; contact: YOUR_EMAIL)"
+
+# --- candidates to probe for coverage gaps ------------------------------
+# These are STARTING GUESSES, not verified gaps. `probe` checks each against
+# Shovels' own API and tells you which ones they genuinely lack.
+# Bias toward small/mid cities: the big metros are already covered.
+probe_candidates:
+  - { city: "Susanville",    state: "CA" }
+  - { city: "Red Bluff",     state: "CA" }
+  - { city: "Ely",           state: "NV" }
+  - { city: "Miles City",    state: "MT" }
+  - { city: "Guymon",        state: "OK" }
+  - { city: "Ottumwa",       state: "IA" }
+  - { city: "Cumberland",    state: "MD" }
+  - { city: "Bluefield",     state: "WV" }
+  - { city: "Clarksdale",    state: "MS" }
+  - { city: "Presque Isle",  state: "ME" }
