@@ -1,18 +1,25 @@
 # shovels-gap
 
-Scrapes building-permit records out of a US local-government permit portal
-that has no public API, normalizes them into one consistent schema, and
-verifies the output against the portal's own stated totals rather than
-trusting that pagination and parsing quietly worked.
+[![tests](https://github.com/mzhc1/shovels-gap/actions/workflows/tests.yml/badge.svg)](https://github.com/mzhc1/shovels-gap/actions/workflows/tests.yml)
 
-Built against Accela Citizen Access, the most widely deployed permit-portal
-platform in US local government. The unit of work is the **platform, not
-the city** — one adapter handles every Accela jurisdiction, and a new one
-is a config change, not a rewrite (see "The leverage argument" below).
+Scrapes building-permit records out of US local-government permit portals
+that have no public API, normalizes them into one schema, and verifies the
+output against the portal's own stated totals instead of trusting that
+pagination and parsing quietly worked.
+
+**Headline result:** built against Accela Citizen Access, it pulled 1,479
+verified permits for Paso Robles, CA over a 12-month window — see
+[`sample_paso_robles.csv`](sample_paso_robles.csv) for real scraped output.
+
+```bash
+pip install -e .
+python -m pytest tests/ -q   # 48 passed
+```
 
 ---
 
-## Status — read this first
+<details>
+<summary><strong>Status</strong></summary>
 
 | Part | State |
 |---|---|
@@ -21,22 +28,26 @@ is a config change, not a rewrite (see "The leverage argument" below).
 | Coverage gap probe | **Run against the live Shovels API.** Susanville, CA confirmed as a real gap (0 permits). |
 | Live scrape against a real portal | **Run against Paso Robles, CA (Accela/PRCITY).** 1,479 permits over the trailing 12 months. |
 
-```
-$ python -m pytest tests/ -q
-48 passed
-```
-
 The target: **Paso Robles, CA**, Accela Citizen Access, `PRCITY` agency,
 1,479 permits scraped over the trailing 12 months. A 50-row sample of the
 actual scraped output is committed at
 [`sample_paso_robles.csv`](sample_paso_robles.csv), so you can see real
 output without running anything.
 
----
+</details>
 
-## Setup
+<details>
+<summary><strong>Setup</strong></summary>
 
-macOS/Linux:
+Install as a package (recommended):
+
+```bash
+pip install -e .
+cp config.example.yaml config.yaml
+python -m pytest tests/ -q          # should be 48 passed
+```
+
+Or with a plain venv, macOS/Linux:
 
 ```bash
 cd shovels-gap
@@ -57,9 +68,10 @@ copy config.example.yaml config.yaml
 python -m pytest tests/ -q          # should be 48 passed
 ```
 
----
+</details>
 
-## Why Paso Robles, not Susanville
+<details>
+<summary><strong>Why Paso Robles, not Susanville</strong></summary>
 
 `probe` found a real gap first: **Susanville, CA** — 0 permits in Shovels,
 confirmed via the live API (see `out/coverage_probe.json`). It looked like
@@ -72,8 +84,8 @@ a subset of permit types (electrical/mechanical/plumbing/roofing
 applications) and isn't the city's own record set.
 
 Paso Robles was picked instead precisely because it's on Accela — a real,
-scrapeable target with an existing, verifiable coverage gap (see Origin,
-near the end, for the numbers).
+scrapeable target with an existing, verifiable coverage gap: Shovels' own
+API returns 6 permits for Paso Robles, CA; the live portal has 1,479.
 
 **The wider lesson:** a coverage gap in a small jurisdiction usually means
 no scrapeable source exists at all, not that nobody's built the scraper yet
@@ -85,9 +97,10 @@ rank by gap size. `probe` alone can't tell you which — it just tells you
 the gap exists. Checking for a live portal is a separate, necessary step
 before committing to a target.
 
----
+</details>
 
-## The three steps, in order
+<details>
+<summary><strong>The three steps, in order</strong></summary>
 
 Each one is cheap and answers a question before the next one costs you an evening.
 
@@ -165,7 +178,7 @@ field fill rate:
     zipcode                64.4%
     owner_name              0.0%
     contractor_name         0.0%
-    job_value                0.0%
+    job_value               0.0%
     residential            44.8%
 ```
 
@@ -196,9 +209,10 @@ Honest caveats, not gaps in the parser:
   Estimate", "Addendum"), same as everything else — worth filtering out
   downstream if the consumer wants permits only.
 
----
+</details>
 
-## Bugs found running this for real, and how they were caught
+<details>
+<summary><strong>Bugs found running this for real, and how they were caught</strong></summary>
 
 Every one of these was invisible from a single small test run — the code
 looked done, the tests were green, and the output looked plausible. They
@@ -257,9 +271,10 @@ Every one of the above has a regression test pinned to the real markup
 that exposed it, in `tests/test_accela_parse.py` and
 `tests/test_schema.py`.
 
----
+</details>
 
-## What's actually hard here, and why it's the point
+<details>
+<summary><strong>What's actually hard here, and why it's the point</strong></summary>
 
 Accela Citizen Access is ASP.NET WebForms, so:
 
@@ -283,7 +298,10 @@ status column. There's a test for exactly that case
 either — Accela prepends a "Showing X of Y" toolbar row first; the real
 header is located by which row actually contains `<th>` cells.
 
-## The leverage argument
+</details>
+
+<details>
+<summary><strong>The leverage argument</strong></summary>
 
 There are ~20,000 US permitting authorities but only a handful of portal
 platforms — Accela, Tyler EnerGov, OpenGov/ViewPoint, CityView, eTRAKiT — plus a
@@ -303,7 +321,10 @@ along the way — COHP names its permits module `ConstPermit` rather than
 its displayed total at `"100+"` instead of an exact count, which needed an
 adapter-level fix rather than a config one. None of it was a rewrite.
 
-## The normalizer never guesses
+</details>
+
+<details>
+<summary><strong>The normalizer never guesses</strong></summary>
 
 `infer_residential()` returns `None` when the text doesn't say, rather than
 picking a side. `parse_money("N/A")` returns `None`, not `0.0`.
@@ -321,17 +342,10 @@ filled. Pass `reject_log=[]` to `validate_batch()` to capture what got dropped
 and why — `src/run.py` writes it to `out/rejected.csv` whenever anything is
 rejected, which is how the pagination-footer bug above was caught.
 
-## Origin
+</details>
 
-This started as a proof-of-work piece for a Shovels Senior Data & Platform
-Engineer opening, whose first listed responsibility is the spider fleet
-pulling permits out of thousands of government systems — the same
-scrape-normalize-verify problem this project solves end to end. It also
-doubles as a concrete demonstration of the gap it was built to find:
-Shovels' own API returns 6 permits for Paso Robles, CA; the live portal has
-1,479.
-
-## Layout
+<details>
+<summary><strong>Layout</strong></summary>
 
 ```
 src/schema.py            Permit shape, normalizers, validation gate
@@ -343,7 +357,10 @@ src/run.py               CLI: smoke | probe | scrape
 tests/                   48 offline tests, no network
 ```
 
-## Manners
+</details>
+
+<details>
+<summary><strong>Manners</strong></summary>
 
 Default 1.5s + jitter between requests, single-threaded, identifying
 User-Agent. **Put a real contact address in `user_agent` before running** —
@@ -394,3 +411,21 @@ unremarked:
   not a security boundary, and the threat model here doesn't include a
   hostile local user. Noted so it isn't silently assumed safe if this code
   ends up reused somewhere that assumption doesn't hold.
+
+</details>
+
+<details>
+<summary><strong>Origin</strong></summary>
+
+Public building-permit records exist for every jurisdiction in the US, but
+there's no unified API for them — each city or county runs its own portal,
+usually one of a handful of vendor platforms, with no public data feed. This
+project is an end-to-end answer to that gap: scrape a real portal, normalize
+into one schema, and verify the output against the portal's own numbers
+instead of trusting that the scrape quietly worked.
+
+It also doubles as a concrete demonstration of the gap it was built to
+close: Shovels' own API returns 6 permits for Paso Robles, CA; the live
+portal has 1,479.
+
+</details>
