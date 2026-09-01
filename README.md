@@ -13,7 +13,7 @@ verified permits for Paso Robles, CA over a 12-month window — see
 
 ```bash
 pip install -e .
-python -m pytest tests/ -q   # 48 passed
+python -m pytest tests/ -q   # 53 passed
 ```
 
 ---
@@ -44,7 +44,7 @@ Install as a package (recommended):
 ```bash
 pip install -e .
 cp config.example.yaml config.yaml
-python -m pytest tests/ -q          # should be 48 passed
+python -m pytest tests/ -q          # should be 53 passed
 ```
 
 Or with a plain venv, macOS/Linux:
@@ -54,7 +54,7 @@ cd shovels-gap
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp config.example.yaml config.yaml
-python -m pytest tests/ -q          # should be 48 passed
+python -m pytest tests/ -q          # should be 53 passed
 ```
 
 Windows (PowerShell or cmd.exe):
@@ -65,7 +65,7 @@ python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 copy config.example.yaml config.yaml
-python -m pytest tests/ -q          # should be 48 passed
+python -m pytest tests/ -q          # should be 53 passed
 ```
 
 </details>
@@ -345,6 +345,86 @@ rejected, which is how the pagination-footer bug above was caught.
 </details>
 
 <details>
+<summary><strong>Data pipeline: storage, transforms, scheduling</strong></summary>
+
+Everything downstream of extraction. The scraper stays usable on its own —
+`python -m src.run scrape` has no dependency on any of this — the pipeline
+is a layer on top, in its own package with its own optional dependency
+group (`pip install -e ".[pipeline]"`, on top of the base install).
+
+**Storage — DuckDB.** File-based, no server, and small enough to commit a
+real sample: `warehouse/shovels_gap.duckdb` ships in the repo, loaded from
+the actual Paso Robles (1,479 records) and High Point (140 records) scrapes
+already on record — not synthetic data.
+
+**Incremental loads.** `pipeline/load.py` upserts on `record_id` — the
+content-derived id `validate_batch()` already computes in `src/schema.py`
+— via `INSERT ... ON CONFLICT (record_id) DO UPDATE`. Re-running a load
+with the same file, or loading a re-scrape that reproduces the same
+permits, updates rows in place instead of duplicating them:
+
+```bash
+python -m src.run scrape --config config.yaml --days 365
+python -m pipeline.load out/paso_robles_permits.json
+```
+
+**Transforms — dbt (dbt-duckdb).** `dbt/models/staging/stg_permits.sql` is
+a typed pass over the raw loaded table, plus one derived column,
+`record_kind` (`permit` / `fee_estimate` / `addendum`), read off the
+Accela record-number prefix (`EST25-…`, `ADD25-…`) — the same Fee Estimate
+/ Addendum distinction the Accela section above documents. Two marts sit
+on top: `permits_by_jurisdiction_month_type` (volume, excluding Fee
+Estimates and Addenda) and `coverage` (reported vs. scraped per
+jurisdiction).
+
+The reported side of `coverage` comes from `dbt/seeds/reported_permit_counts.csv`
+— a **stored, dated observation** from a past `probe` run (Paso Robles: 6
+reported, from the Phase 1 API check), not a live API call from the
+pipeline. The seed's `note` column carries the honest provenance caveat:
+the exact original probe timestamp wasn't preserved, so the date recorded
+is the closest available anchor, not the probe's own logged time.
+
+```bash
+cd dbt
+DBT_PROFILES_DIR=. dbt seed
+DBT_PROFILES_DIR=. dbt run
+DBT_PROFILES_DIR=. dbt test
+```
+
+**Data tests.** Not-null and uniqueness on `record_id`, accepted-values on
+`status` (Shovels' canonical vocabulary) and `record_kind`, and a source
+freshness check (`warn` after 14 days, `error` after 45) on `permits`'
+`loaded_at`. Plus one regression test pinned to real data:
+`dbt/tests/assert_record_kind_matches_known_paso_robles_counts.sql` checks
+`record_kind` against the exact 24 Fee Estimates / 174 Addenda the README
+already documents for Paso Robles — written this way because the bug it
+guards against (an unmatched `EST-%`/`ADD-%` pattern; the real prefixes
+have no hyphen before the year) doesn't produce a wrong count, it produces
+a *missing category*, which a naive `GROUP BY … HAVING` check silently
+lets through. Confirmed by deliberately reintroducing the bug and watching
+the test fail before fixing it back.
+
+**Scheduling — GitHub Actions cron**, not Prefect or Airflow. The repo
+already runs CI on Actions (see the test workflow), so a scheduled
+pipeline job reuses infrastructure that's already there rather than
+standing up a new service. `.github/workflows/pipeline.yml` runs weekly
+(`0 6 * * 1`), one job per jurisdiction, each doing
+`scrape → load → dbt run → dbt test` and uploading the resulting DuckDB
+file as a build artifact. A 14-day scrape window on a weekly cadence gives
+overlap to catch late-arriving records without re-walking a full year
+every run — the upsert absorbs the overlap instead of duplicating it.
+
+The workflow needs a `CONTACT_EMAIL` repository secret. `config.yaml` is
+gitignored (see Manners below) so it doesn't exist in a fresh CI checkout;
+`config_pasorobles.yaml` and `config_highpoint.yaml` are CI-tracked twins
+carrying the same real target values but a `{{CONTACT_EMAIL}}` template
+token in `user_agent`, substituted from the secret at run time. If the
+secret isn't set, the workflow fails loudly rather than sending a
+placeholder contact address to a real government host.
+
+</details>
+
+<details>
 <summary><strong>Layout</strong></summary>
 
 ```
@@ -354,7 +434,11 @@ src/adapters/base.py     Adapter contract; fetch() + smoke_test()
 src/adapters/rate_limit.py  Cross-process, host-keyed rate limiting
 src/adapters/accela.py   Accela Citizen Access implementation
 src/run.py               CLI: smoke | probe | scrape
-tests/                   48 offline tests, no network
+pipeline/load.py         DuckDB upsert on record_id (optional "pipeline" extra)
+warehouse/shovels_gap.duckdb  Committed sample: real Paso Robles + High Point data
+dbt/                     Staging + marts models, seeds, data tests (dbt-duckdb)
+.github/workflows/       Test CI + weekly scrape-load-transform pipeline
+tests/                   53 offline tests, no network (5 pipeline tests skip if the "pipeline" extra isn't installed)
 ```
 
 </details>
