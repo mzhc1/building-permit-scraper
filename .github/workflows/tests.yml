@@ -29,5 +29,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -e ".[pipeline]"
+      - run: pip install -e ".[pipeline,test]"
       - run: pytest tests/ -q
