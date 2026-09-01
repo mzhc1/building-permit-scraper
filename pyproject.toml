@@ -16,6 +16,11 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest>=8.0"]
+pipeline = [
+    "duckdb>=1.0",
+    "dbt-core>=1.8",
+    "dbt-duckdb>=1.8",
+]
 
 [tool.setuptools.packages.find]
 include = ["src*"]
