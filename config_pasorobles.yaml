@@ -1,0 +1,26 @@
+# CI-tracked twin of the local config.yaml. config.yaml itself is gitignored
+# specifically to keep a real contact email out of git (see README
+# "Manners") -- this file carries the same real target values but with a
+# {{CONTACT_EMAIL}} placeholder that .github/workflows/pipeline.yml
+# substitutes from the CONTACT_EMAIL repo secret at run time, so CI never
+# needs (or stores) an actual address.
+
+platform: accela
+
+jurisdiction: "Paso Robles"
+state: "CA"
+city: "El Paso De Robles"
+zipcode: null
+
+base_url: "https://aca-prod.accela.com/PRCITY"
+search_path: "/Cap/CapHome.aspx?module=Building&TabName=Building"
+control_prefix: "ctl00$PlaceHolderMain$generalSearchForm"
+
+min_delay: 2.0
+jitter: 1.0
+slice_days: 7
+max_pages: 20
+user_agent: "shovels-gap-demo/0.1 (public records research; contact: {{CONTACT_EMAIL}})"
+
+probe_candidates:
+  - { city: "Paso Robles", state: "CA" }

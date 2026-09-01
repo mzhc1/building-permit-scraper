@@ -17,3 +17,17 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: pip install -r requirements.txt
       - run: pytest tests/ -q
+
+  # Scraper core tests run dependency-light above (requirements.txt only,
+  # no duckdb/dbt) -- the scraper must stay usable without the pipeline
+  # extra. This job actually exercises the pipeline tests instead of
+  # letting them import-skip forever in the job above.
+  test-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[pipeline]"
+      - run: pytest tests/ -q

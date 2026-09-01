@@ -1,0 +1,68 @@
+name: pipeline
+
+# Scheduled scrape -> load -> transform -> test, per jurisdiction. Weekly,
+# not daily: this project exists to be a polite guest on small government
+# servers (see README "Manners"), and a 14-day scrape window on a weekly
+# cadence gives comfortable overlap to catch late-arriving records without
+# re-walking a full year every run. The load step upserts on record_id, so
+# overlap re-fetches instead of duplicating -- see pipeline/load.py.
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Monday 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Scrape window in days"
+        default: "14"
+
+jobs:
+  scrape-load-transform:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config: ["config_pasorobles.yaml", "config_highpoint.yaml"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -e ".[pipeline]"
+
+      - name: fill in contact email
+        env:
+          CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
+        run: |
+          if [ -z "$CONTACT_EMAIL" ]; then
+            echo "::error::CONTACT_EMAIL repo secret is not set -- see README Manners section. Refusing to send a placeholder User-Agent to a real government host."
+            exit 1
+          fi
+          sed -i "s/{{CONTACT_EMAIL}}/$CONTACT_EMAIL/" ${{ matrix.config }}
+
+      - name: scrape
+        run: |
+          python -m src.run smoke --config ${{ matrix.config }}
+          python -m src.run scrape --config ${{ matrix.config }} --days ${{ github.event.inputs.days || '14' }}
+
+      - name: load into DuckDB
+        run: |
+          stem=$(python -c "import yaml,sys; print(yaml.safe_load(open('${{ matrix.config }}'))['jurisdiction'].lower().replace(' ', '_'))")
+          python -m pipeline.load "out/${stem}_permits.json"
+
+      - name: dbt run + test
+        working-directory: dbt
+        env:
+          DBT_PROFILES_DIR: .
+        run: |
+          dbt run
+          dbt test
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: warehouse-${{ strategy.job-index }}
+          path: |
+            warehouse/shovels_gap.duckdb
+            out/*_report.txt
+          retention-days: 30
