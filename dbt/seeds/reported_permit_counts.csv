@@ -1,0 +1,2 @@
+jurisdiction,state,reported_permit_count,source,as_of_date,note
+Paso Robles,CA,6,Shovels API (Phase 1 probe run),2026-08-27,"Probe run predates this pipeline; exact run timestamp wasn't preserved because out/coverage_probe.json was later overwritten by a Phase 2 probe attempt. Date is the Paso Robles scrape's own run date as the closest available anchor, not the probe's own recorded timestamp."

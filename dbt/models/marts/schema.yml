@@ -1,0 +1,34 @@
+version: 2
+
+models:
+  - name: permits_by_jurisdiction_month_type
+    description: Permit volume grouped by jurisdiction, month, type, and status. Excludes Fee Estimates and Addenda.
+    columns:
+      - name: jurisdiction
+        tests:
+          - not_null
+      - name: permit_count
+        tests:
+          - not_null
+
+  - name: coverage
+    description: Reported (Shovels API, stored observation) vs actually scraped permit counts per jurisdiction.
+    columns:
+      - name: jurisdiction
+        tests:
+          - not_null
+          - unique
+      - name: scraped_permit_count
+        tests:
+          - not_null
+
+seeds:
+  - name: reported_permit_counts
+    description: Stored, dated observations from past `probe` runs -- not a live lookup. See the note column for provenance.
+    columns:
+      - name: jurisdiction
+        tests:
+          - not_null
+      - name: reported_permit_count
+        tests:
+          - not_null

@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: stg_permits
+    description: Typed pass over raw.permits, plus record_kind (permit vs fee_estimate vs addendum, from the Accela record-number prefix).
+    columns:
+      - name: record_id
+        tests:
+          - unique
+          - not_null
+      - name: record_kind
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["permit", "fee_estimate", "addendum"]
+      - name: status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["in_review", "active", "final", "expired", "withdrawn", "unknown"]

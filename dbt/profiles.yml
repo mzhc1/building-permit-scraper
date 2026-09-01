@@ -1,0 +1,7 @@
+shovels_gap:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "../warehouse/shovels_gap.duckdb"
+      threads: 4

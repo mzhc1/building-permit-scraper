@@ -1,0 +1,37 @@
+version: 2
+
+sources:
+  - name: raw
+    description: >
+      Loaded directly by pipeline/load.py from scraper output (out/*_permits.json).
+      Column shapes and normalization rules live in src/schema.py -- this source
+      does not re-derive or reinterpret anything the scraper already decided.
+    schema: main
+    tables:
+      - name: permits
+        description: One row per permit, upserted on record_id.
+        loaded_at_field: loaded_at
+        freshness:
+          warn_after: { count: 14, period: day }
+          error_after: { count: 45, period: day }
+        columns:
+          - name: record_id
+            description: Content-derived id (state|jurisdiction|permit_number, hashed) computed in Permit.finalize().
+            tests:
+              - unique
+              - not_null
+          - name: permit_number
+            tests:
+              - not_null
+          - name: jurisdiction
+            tests:
+              - not_null
+          - name: state
+            tests:
+              - not_null
+          - name: status
+            description: Normalized to Shovels' canonical status vocabulary by normalize_status() in src/schema.py.
+            tests:
+              - accepted_values:
+                  arguments:
+                    values: ["in_review", "active", "final", "expired", "withdrawn", "unknown"]

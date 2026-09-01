@@ -1,0 +1,16 @@
+name: "shovels_gap"
+version: "1.0.0"
+config-version: 2
+
+profile: "shovels_gap"
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  shovels_gap:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table
