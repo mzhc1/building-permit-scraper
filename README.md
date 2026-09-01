@@ -1,6 +1,6 @@
-# shovels-gap
+# building-permit-scraper
 
-[![tests](https://github.com/mzhc1/shovels-gap/actions/workflows/tests.yml/badge.svg)](https://github.com/mzhc1/shovels-gap/actions/workflows/tests.yml)
+[![tests](https://github.com/mzhc1/building-permit-scraper/actions/workflows/tests.yml/badge.svg)](https://github.com/mzhc1/building-permit-scraper/actions/workflows/tests.yml)
 
 Scrapes building-permit records out of US local-government permit portals
 that have no public API, normalizes them into one schema, and verifies the
