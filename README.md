@@ -50,7 +50,7 @@ python -m pytest tests/ -q          # should be 53 passed
 Or with a plain venv, macOS/Linux:
 
 ```bash
-cd shovels-gap
+cd building-permit-scraper
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp config.example.yaml config.yaml
@@ -60,7 +60,7 @@ python -m pytest tests/ -q          # should be 53 passed
 Windows (PowerShell or cmd.exe):
 
 ```bat
-cd shovels-gap
+cd building-permit-scraper
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
@@ -353,7 +353,7 @@ is a layer on top, in its own package with its own optional dependency
 group (`pip install -e ".[pipeline]"`, on top of the base install).
 
 **Storage — DuckDB.** File-based, no server, and small enough to commit a
-real sample: `warehouse/shovels_gap.duckdb` ships in the repo, loaded from
+real sample: `warehouse/building_permit_scraper.duckdb` ships in the repo, loaded from
 the actual Paso Robles (1,479 records) and High Point (140 records) scrapes
 already on record — not synthetic data.
 
@@ -435,7 +435,7 @@ src/adapters/rate_limit.py  Cross-process, host-keyed rate limiting
 src/adapters/accela.py   Accela Citizen Access implementation
 src/run.py               CLI: smoke | probe | scrape
 pipeline/load.py         DuckDB upsert on record_id (optional "pipeline" extra)
-warehouse/shovels_gap.duckdb  Committed sample: real Paso Robles + High Point data
+warehouse/building_permit_scraper.duckdb  Committed sample: real Paso Robles + High Point data
 dbt/                     Staging + marts models, seeds, data tests (dbt-duckdb)
 .github/workflows/       Test CI + weekly scrape-load-transform pipeline
 tests/                   53 offline tests, no network (5 pipeline tests skip if the "pipeline" extra isn't installed)

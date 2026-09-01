@@ -44,7 +44,7 @@ from urllib.parse import urlparse
 # for a solo scraper on a personal or CI machine doesn't include a hostile
 # local user. Naming it so it isn't silently assumed safe if this ever runs
 # somewhere that assumption doesn't hold.
-_STATE_DIR = Path(tempfile.gettempdir()) / "shovels-gap-rate-limits"
+_STATE_DIR = Path(tempfile.gettempdir()) / "building-permit-scraper-rate-limits"
 
 # If a lock file is older than this, its owner almost certainly crashed
 # (or was killed) while holding it. Break the lock instead of wedging every

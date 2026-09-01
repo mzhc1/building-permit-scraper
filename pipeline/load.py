@@ -2,7 +2,7 @@
 Load scraped permit output into DuckDB, idempotently.
 
     python -m pipeline.load out/paso_robles_permits.json
-    python -m pipeline.load out/high_point_permits.json --db warehouse/shovels_gap.duckdb
+    python -m pipeline.load out/high_point_permits.json --db warehouse/building_permit_scraper.duckdb
 
 Upserts on record_id -- the content-derived id validate_batch() already
 computes in src/schema.py (state|jurisdiction|permit_number, hashed). This

@@ -13,7 +13,7 @@ from pathlib import Path
 
 import duckdb
 
-DEFAULT_DB_PATH = Path("warehouse/shovels_gap.duckdb")
+DEFAULT_DB_PATH = Path("warehouse/building_permit_scraper.duckdb")
 
 # Column order/types follow src/schema.py's Permit dataclass. record_id is
 # the content-derived id validate_batch() already computes -- the upsert key

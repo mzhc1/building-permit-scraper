@@ -123,7 +123,7 @@ def cmd_scrape(args) -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(prog="shovels-gap")
+    parser = argparse.ArgumentParser(prog="building-permit-scraper")
     sub = parser.add_subparsers(dest="command", required=True)
 
     for name, handler in (("smoke", cmd_smoke), ("probe", cmd_probe)):

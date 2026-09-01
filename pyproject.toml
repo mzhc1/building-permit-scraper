@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "shovels-gap"
+name = "building-permit-scraper"
 version = "0.1.0"
 description = "Scrapes building-permit records out of permit portals with no public API, normalizes them into one schema, and verifies output against the portal's own stated totals."
 readme = "README.md"

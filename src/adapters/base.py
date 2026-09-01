@@ -7,8 +7,7 @@ OpenGov/ViewPoint, CityView, eTRAKiT) wearing 20,000 different skins, plus a
 long tail of bespoke pages and PDFs.
 
 So the unit of work is the PLATFORM, not the city. One adapter that handles
-Accela unlocks every Accela jurisdiction with a config change. That is the
-thing worth showing someone who owns a spider fleet.
+Accela unlocks every Accela jurisdiction with a config change.
 """
 
 from __future__ import annotations
@@ -23,7 +22,7 @@ from ..schema import Permit
 from . import rate_limit
 
 USER_AGENT = (
-    "shovels-gap-demo/0.1 (public records research; contact: SET_YOUR_EMAIL)"
+    "building-permit-scraper/0.1 (public records research; contact: SET_YOUR_EMAIL)"
 )
 
 

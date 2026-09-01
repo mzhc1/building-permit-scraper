@@ -20,7 +20,7 @@ min_delay: 2.0
 jitter: 1.0
 slice_days: 7
 max_pages: 20
-user_agent: "shovels-gap-demo/0.1 (public records research; contact: {{CONTACT_EMAIL}})"
+user_agent: "building-permit-scraper/0.1 (public records research; contact: {{CONTACT_EMAIL}})"
 
 probe_candidates:
   - { city: "Paso Robles", state: "CA" }

@@ -28,7 +28,7 @@ min_delay: 1.5            # seconds between requests, minimum
 jitter: 0.8               # plus up to this much random
 slice_days: 7             # date window per search; Accela caps result sets
 max_pages: 20             # per window, guards against a pagination loop
-user_agent: "shovels-gap-demo/0.1 (public records research; contact: YOUR_EMAIL)"
+user_agent: "building-permit-scraper/0.1 (public records research; contact: YOUR_EMAIL)"
 
 # --- candidates to probe for coverage gaps ------------------------------
 # These are STARTING GUESSES, not verified gaps. `probe` checks each against

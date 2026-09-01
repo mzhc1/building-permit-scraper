@@ -1,7 +1,7 @@
-shovels_gap:
+building_permit_scraper:
   target: dev
   outputs:
     dev:
       type: duckdb
-      path: "../warehouse/shovels_gap.duckdb"
+      path: "../warehouse/building_permit_scraper.duckdb"
       threads: 4

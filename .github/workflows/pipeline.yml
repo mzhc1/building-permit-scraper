@@ -63,6 +63,6 @@ jobs:
         with:
           name: warehouse-${{ strategy.job-index }}
           path: |
-            warehouse/shovels_gap.duckdb
+            warehouse/building_permit_scraper.duckdb
             out/*_report.txt
           retention-days: 30
